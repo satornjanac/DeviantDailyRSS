@@ -1,14 +1,25 @@
 package com.arm.satornjanac.deviantdaily;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class PhotoSlidePageFragment extends Fragment {
 
@@ -17,6 +28,7 @@ public class PhotoSlidePageFragment extends Fragment {
 
     private String mPhotoUrl;
     private int mPositionInAdapter;
+    private LinearLayout mColorPalette;
 
     public static PhotoSlidePageFragment newInstance(String photoDetail, int position) {
         PhotoSlidePageFragment fragment = new PhotoSlidePageFragment();
@@ -45,9 +57,34 @@ public class PhotoSlidePageFragment extends Fragment {
 
         final ImageView networkImageView = (ImageView) rootView.findViewById(
                 R.id.networkImageDetailView);
+        mColorPalette = (LinearLayout) rootView.findViewById(R.id.palletColor);
         ImageLoader imageLoader = ImageLoader.getInstance();
         if (!TextUtils.isEmpty(mPhotoUrl)) {
-            imageLoader.displayImage(mPhotoUrl, networkImageView);
+            //imageLoader.displayImage(mPhotoUrl, networkImageView);
+            imageLoader.loadImage(mPhotoUrl, new SimpleImageLoadingListener() {
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    networkImageView.setImageBitmap(loadedImage);
+                    Palette.generateAsync(loadedImage, new Palette.PaletteAsyncListener() {
+                        public void onGenerated(Palette p) {
+                            List<Palette.Swatch> swatches = new ArrayList<Palette.Swatch>();
+                            swatches.addAll(p.getSwatches());
+                            Collections.sort(swatches, PALLETE_ORDER);
+                            ImageView[] listOfColorImages = new ImageView[6];
+                            listOfColorImages[0] = (ImageView)mColorPalette.findViewById(R.id.color1);
+                            listOfColorImages[1] = (ImageView)mColorPalette.findViewById(R.id.color2);
+                            listOfColorImages[2] = (ImageView)mColorPalette.findViewById(R.id.color3);
+                            listOfColorImages[3] = (ImageView)mColorPalette.findViewById(R.id.color4);
+                            listOfColorImages[4] = (ImageView)mColorPalette.findViewById(R.id.color5);
+                            listOfColorImages[5] = (ImageView)mColorPalette.findViewById(R.id.color6);
+                            for (int i = 0; i < 6; i++) {
+                                listOfColorImages[i].setBackgroundColor(swatches.get(i).getRgb());
+                            }
+                            mColorPalette.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+            });
         } else {
             networkImageView.setImageResource(android.R.drawable.stat_notify_error);
         }
@@ -63,4 +100,14 @@ public class PhotoSlidePageFragment extends Fragment {
 
         return rootView;
     }
+
+    static final Comparator<Palette.Swatch> PALLETE_ORDER =
+            new Comparator<Palette.Swatch>() {
+                public int compare(Palette.Swatch e1, Palette.Swatch e2) {
+
+                    return (e2.getPopulation() < e1.getPopulation() ? -1 :
+                            (e1.getPopulation() == e2.getPopulation() ? 0 : 1));
+                }
+            };
+
 }

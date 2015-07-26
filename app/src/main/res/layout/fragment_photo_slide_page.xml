@@ -15,6 +15,63 @@
             android:layout_height="300dp"
             android:layout_centerInParent="true"
             android:scaleType="fitXY"/>
+
+        <LinearLayout
+            android:id="@+id/palletColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/networkImageDetailView"
+            android:layout_marginTop="16dp"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/color1"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:scaleType="fitXY"/>
+
+            <ImageView
+                android:id="@+id/color2"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitXY"/>
+
+            <ImageView
+                android:id="@+id/color3"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitXY"/>
+
+            <ImageView
+                android:id="@+id/color4"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitXY"/>
+
+            <ImageView
+                android:id="@+id/color5"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitXY"/>
+
+            <ImageView
+                android:id="@+id/color6"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginStart="4dp"
+                android:scaleType="fitXY"/>
+
+        </LinearLayout>
     </RelativeLayout>
 
 </FrameLayout>
