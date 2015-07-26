@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">DeviantDaily</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_photo_slide">PhotoSlideActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="download_will_start_shortly_message">Download will start shortly</string>
+    <string name="image_is_downloaded">Image is downloaded</string>
+    <string name="image_is_already_saved">Image is already saved</string>
+    <string name="cannot_delete_file_on_server">Cannot delete file on server</string>
+    <string name="snackbar_delete">Delete</string>
+</resources>
