@@ -2,14 +2,13 @@ package com.arm.satornjanac.deviantdaily.data;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
 import com.arm.satornjanac.deviantdaily.R;
-import com.nostra13.universalimageloader.core.ImageLoader;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -24,24 +23,27 @@ public class ImageAdapter extends BaseAdapter {
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater =
-                (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        ViewHolder holder = null;
+        if (convertView == null) {
+            convertView = View.inflate(context, R.layout.image_adapter_item, null);
+        }
         View rootView = convertView;
-        if (rootView == null) {
-            rootView = inflater.inflate(R.layout.image_adapter_item, null);
-            // configure view holder
-            ViewHolder viewHolder = new ViewHolder();
-            viewHolder.imageView = (ImageView) rootView.findViewById(R.id.networkImageView);
-            rootView.setTag(viewHolder);
+        Object tag = rootView.getTag();
+        if (tag instanceof ViewHolder) {
+            holder = (ViewHolder) tag;
+        }
+        if (holder == null) {
+            holder = new ViewHolder();
+            holder.imageView = (ImageView) rootView.findViewById(R.id.networkImageView);
+            rootView.setTag(holder);
         }
 
-        ViewHolder holder = (ViewHolder) rootView.getTag();
-
         PhotoDetails photoDetails = (PhotoDetails) getItem(position);
-        String thumbUrl = photoDetails.getPhotoUrl();
-        ImageLoader imageLoader = ImageLoader.getInstance();
+        holder.imageView.setBackground(null);
+
+        String thumbUrl = photoDetails.getThumbnailUrl();
         if (!TextUtils.isEmpty(thumbUrl)) {
-            imageLoader.displayImage(thumbUrl, holder.imageView);
+            Picasso.with(context).load(thumbUrl).into(holder.imageView);
         } else {
             holder.imageView.setImageResource(android.R.drawable.stat_notify_error);
         }

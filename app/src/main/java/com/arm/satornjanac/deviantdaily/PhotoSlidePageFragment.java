@@ -1,19 +1,18 @@
 package com.arm.satornjanac.deviantdaily;
 
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,13 +57,11 @@ public class PhotoSlidePageFragment extends Fragment {
         final ImageView networkImageView = (ImageView) rootView.findViewById(
                 R.id.networkImageDetailView);
         mColorPalette = (LinearLayout) rootView.findViewById(R.id.palletColor);
-        ImageLoader imageLoader = ImageLoader.getInstance();
         if (!TextUtils.isEmpty(mPhotoUrl)) {
-            //imageLoader.displayImage(mPhotoUrl, networkImageView);
-            imageLoader.loadImage(mPhotoUrl, new SimpleImageLoadingListener() {
+            Picasso.with(getActivity()).load(mPhotoUrl).into(networkImageView, new com.squareup.picasso.Callback() {
                 @Override
-                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                    networkImageView.setImageBitmap(loadedImage);
+                public void onSuccess() {
+                    Bitmap loadedImage = ((BitmapDrawable)networkImageView.getDrawable()).getBitmap();
                     Palette.generateAsync(loadedImage, new Palette.PaletteAsyncListener() {
                         public void onGenerated(Palette p) {
                             List<Palette.Swatch> swatches = new ArrayList<Palette.Swatch>();
@@ -77,14 +74,21 @@ public class PhotoSlidePageFragment extends Fragment {
                             listOfColorImages[3] = (ImageView)mColorPalette.findViewById(R.id.color4);
                             listOfColorImages[4] = (ImageView)mColorPalette.findViewById(R.id.color5);
                             listOfColorImages[5] = (ImageView)mColorPalette.findViewById(R.id.color6);
-                            for (int i = 0; i < 6; i++) {
+                            int endOfLoop = swatches.size() < 6 ? swatches.size() : 6;
+                            for (int i = 0; i < endOfLoop; i++) {
                                 listOfColorImages[i].setBackgroundColor(swatches.get(i).getRgb());
                             }
                             mColorPalette.setVisibility(View.VISIBLE);
                         }
                     });
                 }
+
+                @Override
+                public void onError() {
+                    networkImageView.setImageResource(android.R.drawable.stat_notify_error);
+                }
             });
+
         } else {
             networkImageView.setImageResource(android.R.drawable.stat_notify_error);
         }

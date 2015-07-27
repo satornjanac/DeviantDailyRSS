@@ -1,6 +1,5 @@
 package com.arm.satornjanac.deviantdaily;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -31,6 +30,10 @@ public class Utils {
                                           final int position) {
         final PopupWindow popup = new PopupWindow(activity);
         View layout;
+        PhotoDetails photoDetails = PhotoDetailsCache.getPhotoDetails(position);
+        final String bigPhotoUrl = photoDetails.getPhotoUrl();
+        final boolean isLocalFile = photoDetails.isLocalFile();
+
         if (isBigPhoto) {
             layout = activity.getLayoutInflater().inflate(R.layout.popup_content_big, null);
         } else {
@@ -38,15 +41,33 @@ public class Utils {
         }
         popup.setContentView(layout);
 
-        PhotoDetails photoDetails = PhotoDetailsCache.getPhotoDetails(position);
-        final String bigPhotoUrl = photoDetails.getPhotoUrl();
-        final boolean isLocalFile = photoDetails.isLocalFile();
+        setUpPopupButtons(activity, anchorView, position, popup, layout, bigPhotoUrl, isLocalFile);
 
+        popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
+        popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
+        popup.setOutsideTouchable(true);
+        popup.setFocusable(true);
+        popup.setBackgroundDrawable(new BitmapDrawable());
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        activity.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        int height = displaymetrics.heightPixels;
+        int viewY = anchorView.getTop() + anchorView.getHeight();
+        if (viewY + 200 > height) {
+            popup.showAsDropDown(anchorView, 0, -2 * anchorView.getHeight(),
+                    Gravity.VERTICAL_GRAVITY_MASK);
+        } else {
+            popup.showAsDropDown(anchorView, 0, 0, Gravity.VERTICAL_GRAVITY_MASK);
+        }
+    }
+
+    private static void setUpPopupButtons(final DataSetObservableActivity activity, final View
+            anchorView, final int position, final PopupWindow popup, View layout, final String
+            bigPhotoUrl, final boolean isLocalFile) {
         final ImageButton buttonShare = (ImageButton) layout.findViewById(R.id.share);
         buttonShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
                 sharingIntent.setType("image/jpeg");
                 Drawable mDrawable;
                 if (anchorView instanceof LinearLayout) {
@@ -83,34 +104,23 @@ public class Utils {
             }
         });
         ImageButton buttonDelete = (ImageButton) layout.findViewById(R.id.delete);
-        buttonDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isLocalFile) {
-                    Utils.deleteFile(bigPhotoUrl);
-                    PhotoDetailsCache.deleteItemFromPosition(position);
-                    activity.onDataSetChanged();
-                    return;
+        if (isLocalFile) {
+            buttonDelete.setVisibility(View.VISIBLE);
+            buttonDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (isLocalFile) {
+                        Utils.deleteFile(bigPhotoUrl);
+                        PhotoDetailsCache.deleteItemFromPosition(position);
+                        activity.onDataSetChanged();
+                        return;
+                    }
+                    Snackbar.make(activity.findViewById(android.R.id.content),
+                            R.string.cannot_delete_file_on_server, Snackbar.LENGTH_LONG).show();
                 }
-                Snackbar.make(activity.findViewById(android.R.id.content),
-                        R.string.cannot_delete_file_on_server, Snackbar.LENGTH_LONG).show();
-            }
-        });
-        popup.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-        popup.setWidth(WindowManager.LayoutParams.WRAP_CONTENT);
-        popup.setOutsideTouchable(true);
-        popup.setFocusable(true);
-        popup.setBackgroundDrawable(new BitmapDrawable());
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        int height = displaymetrics.heightPixels;
-        int width = displaymetrics.widthPixels;
-        int viewY = anchorView.getTop() + anchorView.getHeight();
-        if (viewY + 200 > height) {
-            popup.showAsDropDown(anchorView, 0, -2 * anchorView.getHeight(),
-                    Gravity.VERTICAL_GRAVITY_MASK);
+            });
         } else {
-            popup.showAsDropDown(anchorView, 0, 0, Gravity.VERTICAL_GRAVITY_MASK);
+            buttonDelete.setVisibility(View.GONE);
         }
     }
 

@@ -7,6 +7,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 
 import com.arm.satornjanac.deviantdaily.MainActivity;
 import com.arm.satornjanac.deviantdaily.data.PhotoDetails;
@@ -28,13 +29,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 
-public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask {
+public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask<Void, Void, Void>{
 
     private MainActivity mActivity;
 
@@ -43,14 +45,33 @@ public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask {
     }
 
     @Override
-    protected String doInBackground(Object[] params) {
+    protected Void doInBackground(Void... voids) {
+        List photoDetails;
+        photoDetails = getImageDetailsFromFeed();
+        photoDetails.addAll(getImageDetailsFromFile());
+        PhotoDetailsCache.setCachedPhotoDetails(photoDetails);
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Void aVoid) {
+        super.onPostExecute(aVoid);
+        mActivity.setUpPhotoGrid(PhotoDetailsCache.getCachedPhotoDetails());
+    }
+
+    private boolean isPhoto(String name) {
+        name = name.toLowerCase();
+        return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg");
+    }
+
+    private List getImageDetailsFromFeed() {
+        List list = new ArrayList();
         HttpClient httpclient = new DefaultHttpClient();
         HttpResponse httpResponse;
-        String responseString = "";
-        List photoDetails = new ArrayList();
+        String responseString;
 
         ConnectivityManager cm =
-                (ConnectivityManager)mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&
@@ -74,7 +95,7 @@ public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask {
                         responseString = out.toString();
                         InputStream is = new ByteArrayInputStream(
                                 Charset.forName("UTF-8").encode(responseString).array());
-                        photoDetails = new DeviantXMLParser().parse(is);
+                        list = new DeviantXMLParser().parse(is);
                     }
                 } else {
                     // Closes the connection.
@@ -82,6 +103,19 @@ public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask {
                     throw new IOException(statusLine.getReasonPhrase());
                 }
             }
+        } catch (ClientProtocolException e) {
+            Log.e("Deviant", e.getMessage());
+        } catch (IOException e) {
+            Log.e("Deviant", e.getMessage());
+        } catch (Exception e) {
+            Log.e("Deviant", e.getMessage());
+        }
+        return list;
+    }
+
+    private List getImageDetailsFromFile() {
+        List list = new ArrayList();
+        try {
             File root =
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             File[] files = root.listFiles();
@@ -91,28 +125,12 @@ public class DeviantRSSDownloadAndFileLoadTask extends AsyncTask {
                     fileName = fileName.replace(":", "://");
                     PhotoDetails photoDetail = new PhotoDetails(fileName, fileName);
                     photoDetail.setIsLocalFile(true);
-                    photoDetails.add(photoDetail);
+                    list.add(photoDetail);
                 }
             }
-        } catch (ClientProtocolException e) {
-            responseString = e.getMessage();
-        } catch (IOException e) {
-            responseString = e.getMessage();
-        } catch (Exception e) {
-            responseString = e.getMessage();
+        } catch (MalformedURLException e) {
+            Log.e("Deviant", e.getMessage());
         }
-        PhotoDetailsCache.setCachedPhotoDetails(photoDetails);
-        return responseString;
-    }
-
-    @Override
-    protected void onPostExecute(Object o) {
-        super.onPostExecute(o);
-        mActivity.setUpPhotoGrid(PhotoDetailsCache.getCachedPhotoDetails());
-    }
-
-    private boolean isPhoto(String name) {
-        name = name.toLowerCase();
-        return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg");
+        return list;
     }
 }

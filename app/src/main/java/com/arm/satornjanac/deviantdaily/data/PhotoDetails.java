@@ -1,13 +1,9 @@
 package com.arm.satornjanac.deviantdaily.data;
 
-
-import android.graphics.Bitmap;
-
 public class PhotoDetails {
 
     private String mThumbnailUrl;
     private String mPhotoUrl;
-    private Bitmap mPhoto;
 
     private boolean isLocalFile;
 
@@ -31,14 +27,6 @@ public class PhotoDetails {
 
     public void setPhotoUrl(String mPhotoUrl) {
         this.mPhotoUrl = mPhotoUrl;
-    }
-
-    public Bitmap getPhoto() {
-        return mPhoto;
-    }
-
-    public void setPhoto(Bitmap mPhoto) {
-        this.mPhoto = mPhoto;
     }
 
     public boolean isLocalFile() {

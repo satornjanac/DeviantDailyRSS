@@ -1,19 +1,19 @@
 package com.arm.satornjanac.deviantdaily;
 
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
 import com.arm.satornjanac.deviantdaily.data.ImageAdapter;
 import com.arm.satornjanac.deviantdaily.data.PhotoDetails;
 import com.arm.satornjanac.deviantdaily.services.DeviantRSSDownloadAndFileLoadTask;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -26,9 +26,6 @@ public class MainActivity extends DataSetObservableActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new DeviantRSSDownloadAndFileLoadTask(this).execute();
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
-        ImageLoader.getInstance().init(config);
-
     }
 
     public void setUpPhotoGrid(List<PhotoDetails> list) {
@@ -44,11 +41,13 @@ public class MainActivity extends DataSetObservableActivity {
         });
         mGridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long
+                    id) {
                 Utils.displayPopupWindow(MainActivity.this, view, false, position);
                 return true;
             }
         });
+        mGridView.setOnScrollListener(new GridScrollListener(this));
     }
 
     @Override
@@ -77,6 +76,30 @@ public class MainActivity extends DataSetObservableActivity {
     public void onDataSetChanged() {
         if (mGridView != null) {
             ((ImageAdapter)mGridView.getAdapter()).notifyDataSetChanged();
+        }
+    }
+
+    private class GridScrollListener implements AbsListView.OnScrollListener {
+
+        private final Context context;
+
+        private GridScrollListener(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public void onScrollStateChanged(AbsListView absListView, int scrollState) {
+            final Picasso picasso = Picasso.with(context);
+            if (scrollState == SCROLL_STATE_IDLE || scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+                picasso.resumeTag(context);
+            } else {
+                picasso.pauseTag(context);
+            }
+        }
+
+        @Override
+        public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+
         }
     }
 }
